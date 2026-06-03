@@ -69,7 +69,7 @@
     {
       local: {
         worker_api_endpoint: {
-          uri: "grpc://127.0.0.1:50061",
+          uri: "grpc://127.0.0.1:60061",
         },
         cas_fast_slow_store: "WORKER_FAST_SLOW_STORE",
         upload_action_result: {
@@ -135,7 +135,7 @@
       name: "public",
       listener: {
         http: {
-          socket_address: "0.0.0.0:50051",
+          socket_address: "0.0.0.0:60051",
         },
       },
       services: {
@@ -201,7 +201,7 @@
       name: "private_workers_servers",
       listener: {
         http: {
-          socket_address: "0.0.0.0:50061",
+          socket_address: "0.0.0.0:60061",
         },
       },
       services: {
