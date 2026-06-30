@@ -589,6 +589,43 @@ pub enum StoreSpec {
     /// ```
     ///
     ExperimentalMongo(ExperimentalMongoSpec),
+
+    /// Experimentatal GitHub Actions Cache store.
+    ///
+    /// Uses the GitHub Actions Cache V2 (Twirp) API to store and retrieve
+    /// cache entries. Only works when running inside a GitHub Actions
+    /// runner context (requires `ACTIONS_RESULTS_URL` and
+    /// `ACTIONS_RUNTIME_TOKEN` environment variables).
+    ///
+    /// **Example JSON Config:**
+    /// ```json
+    /// "experimental_gac": {
+    ///   "cache_version": "nativelink-v1"
+    /// }
+    /// ```
+    ///
+    ExperimentalGac(ExperimentalGacSpec),
+}
+
+/// Configuration for the GitHub Actions Cache store.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "dev-schema", derive(JsonSchema))]
+pub struct ExperimentalGacSpec {
+    /// Optional override for the base URL.
+    /// Default: reads from `ACTIONS_RESULTS_URL` env var.
+    #[serde(default, deserialize_with = "convert_optional_string_with_shellexpand")]
+    pub base_url: Option<String>,
+
+    /// Optional override for the auth token.
+    /// Default: reads from `ACTIONS_RUNTIME_TOKEN` env var.
+    #[serde(default, deserialize_with = "convert_optional_string_with_shellexpand")]
+    pub token: Option<String>,
+
+    /// Version string scoping cache entries.
+    /// Default: "nativelink-v1"
+    #[serde(default, deserialize_with = "convert_optional_string_with_shellexpand")]
+    pub cache_version: Option<String>,
 }
 
 /// Configuration for an individual shard of the store.
