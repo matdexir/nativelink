@@ -9,13 +9,13 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-version = "1.8.0"
+version = "1.8.1"
 
 [package]
 edition = "2024"
 name = "nativelink"
 rust-version = "1.97.1"
-version = "1.8.0"
+version = "1.8.1"
 
 [profile.release]
 lto = true

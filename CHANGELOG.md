@@ -3,6 +3,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.1](https://github.com/TraceMachina/nativelink/compare/v1.8.0..v1.8.1) - 2026-10-22
+
+
+
+### 🧪 Testing & CI
+
+- Rename GitHub Actions workflows to an Area / Concern scheme. ([#2997](https://github.com/TraceMachina/nativelink/issues/2997)) - ([113fee0](https://github.com/TraceMachina/nativelink/commit/113fee0c781894dea41b0e29c5d27b16ba49684b))
+- Refresh ca-certificates apt pin in Compose image ([#2994](https://github.com/TraceMachina/nativelink/issues/2994)) - ([818a71d](https://github.com/TraceMachina/nativelink/commit/818a71d2bc5197cbb4b085740cbfd85c6ae85eca))
+
+### ⚙️ Miscellaneous
+
+- Report content length from filesystem store has() ([#3006](https://github.com/TraceMachina/nativelink/issues/3006)) - ([b014176](https://github.com/TraceMachina/nativelink/commit/b01417643e670c215b6855f06b15b8b64358544e))
+- Compare the webpki root store with assert_ne so pedantic Clippy accepts the non-empty guard. ([#3007](https://github.com/TraceMachina/nativelink/issues/3007)) - ([8a93851](https://github.com/TraceMachina/nativelink/commit/8a938518b69ceadd059de8e1e4be9784df2bde0e))
+- Read the listed records of a filter pass 64 at a time so a deep queue on Redis lists inside the provisioner's timeout ([#3001](https://github.com/TraceMachina/nativelink/issues/3001)) - ([4edf822](https://github.com/TraceMachina/nativelink/commit/4edf8224ea6817c9b07da9e1f3cba59d7f6bf998))
+- Create the scheduler index persistent: RediSearch never garbage collects a temporary index and every query pays for the dead entries ([#3000](https://github.com/TraceMachina/nativelink/issues/3000)) - ([05bb310](https://github.com/TraceMachina/nativelink/commit/05bb3104c48b1f4b2a14f87cfe1a1f8f5dc1874e))
+
+### ⬆️ Bumps & Version Updates
+
+- Update Rust crate webpki-roots to v1.0.10 [SECURITY] ([#2987](https://github.com/TraceMachina/nativelink/issues/2987)) - ([21ae178](https://github.com/TraceMachina/nativelink/commit/21ae17884e9f85bc62914e6085e220fa19a961fe))
+
 ## [1.8.0](https://github.com/TraceMachina/nativelink/compare/v1.7.7..v1.8.0) - 2026-10-21
 
 
