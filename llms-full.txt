@@ -358,8 +358,8 @@ history. Privacy requests go to privacy@tracemachina.com.
 - [From One Robot to 1,000 with rules_omniverse](https://nativelink.com/resources/blog/rules-omniverse-0-3-0) (2026-08-27): Today we are releasing our first official Bazel ruleset for physical AI. It is built to carry robotics work from research to production.
 - [Case Study: LastMile AI](https://nativelink.com/resources/blog/case-study-last-mile-ai) (2025-09-25): LastMile AI is an AI startup creating tools to enable developers to build AI agents. The team comes from backgrounds in top research and engineering organizations, building infrastructure and devel…
 - [Supercharge Your C/C++ Builds without Migrating to Bazel: A Tutorial for CMake, Nativelink and BuildStream](https://nativelink.com/resources/blog/accelerating-cmake-with-nativelink) (2025-08-12): Slow build times can be a major drag on developer productivity. Waiting for your code to compile and build can interrupt your flow and waste valuable time. Lots of companies have moved to Bazel and…
-- [Fine-tune a Language Model on x86 CPUs using Bazel and NativeLink](https://nativelink.com/resources/blog/finetune-with-bazel-nativelink) (2025-05-15): The future of AI development belongs not necessarily to those with the most powerful infrastructure but to those who can extract maximum value from available resources. This tutorial emphasizes CPU…
 - [Trust Root Support in Nativelink](https://nativelink.com/resources/blog/adding-trust-roots-to-nativelink) (2025-05-15): Open source thrives on community contributions, and today’s story is a perfect example of why. External engineer Sam Eskandar identified a pain point in Nativelink's TLS configuration and delivered…
+- [Fine-tune a Language Model on x86 CPUs using Bazel and NativeLink](https://nativelink.com/resources/blog/finetune-with-bazel-nativelink) (2025-05-15): The future of AI development belongs not necessarily to those with the most powerful infrastructure but to those who can extract maximum value from available resources. This tutorial emphasizes CPU…
 - [Thirdwave Automation and NativeLink](https://nativelink.com/resources/blog/case-study-thirdwave-automation) (2025-03-06): “Our business relies on delivering autonomous systems with an exceptional level of safety. With NativeLink’s massively-parallel cloud service, we can now iterate faster and continuously learn from…
 - [Fortune 50 Manufacturer Uses NativeLink For 20x Accelerated Build Speed and 30x Improved Storage Density](https://nativelink.com/resources/blog/case-study-fortune-50-manufacturer) (2025-01-21): A Fortune 50 Manufacturer builds a Chromium-based browser, and it has been an integral part of their product lineup, requiring robust and efficient build infrastructure to keep up with its evolving…
 - [NativeLink for Semiconductors](https://nativelink.com/resources/blog/semiconductors) (2024-12-04): NativeLink has become a critical architectural component for companies developing custom silicon. From the outset, our mission was to build an open-source simulation platform designed to scale with…
@@ -1253,99 +1253,6 @@ You have now successfully set up a project with BuildStream and Nativelink for a
 
 If you have any questions or want to learn more, feel free to reach out to **contact@nativelink.com**. Happy building\! 🚀
 
-# https://nativelink.com/resources/blog/finetune-with-bazel-nativelink
-
-**Fine-tune a Language Model on x86 CPUs using Bazel and NativeLink** (2025-05-15): The future of AI development belongs not necessarily to those with the most powerful infrastructure but to those who can extract maximum value from available resources. This tutorial emphasizes CPU…
-
-## Introduction
-
-The future of AI development belongs not necessarily to those with the most powerful infrastructure but to those who can extract maximum value from available resources. This tutorial emphasizes CPU-based fine-tuning demonstrating that with intelligent resource management through NativeLink, impressive results can be achieved without expensive GPU or TPU infrastructure. As compute becomes increasingly costly, competitive advantage will shift toward teams that optimize resource efficiency rather than those deploying state-of-the-art hardware.
-
-This guide demonstrates how to establish an optimized AI development pipeline by integrating several key technologies:<br></br>
-1\. **Bazel Build System**: For efficient repository management. A repository managed by Bazel allows your team to work in a unified codebase while maintaining clean separation of concerns.<br></br>
-2\. **NativeLink**: A remote execution system hosted in your cloud. With NativeLink's remote execution capabilities, you can leverage your cloud resources optimally without wasteful duplication of work.<br></br>
-3\. **Hugging Face Transformers**: For integrating with the rich ecosystem of open-source models that you can run locally or deploy anywhere. The transformers library also provides a sophisticated caching mechanism for optimizing loading model weights.
-
-
-## Setting Up Your Repository With Bazel
-
-Bazel is a build system designed for repositories that allows you to organize code into logical components while maintaining dependency relationships. For AI workloads, this is particularly valuable as it lets you separate model definitions, data processing pipelines, training code, and inference services.
-
-### Prerequisites
-
-1\. A recent version of Bazel ([installation instructions](https://bazel.build/install)). <br></br>
-2\. [NativeLink 0.6.0](https://github.com/TraceMachina/nativelink/releases/tag/v0.6.0) (Apache-licensed)
-
-### Initial Setup
-
-First, let's download all the files. From the folder where you want to download the files, run the following commands:
-
-<div style="max-height: 250px; max-width: 50vw; overflow: auto;">
-
-```bash
-# Clone the entire repository
-git clone https://github.com/TraceMachina/nativelink-blogs.git
-
-# Navigate to the subdirectory
-cd nativelink-blogs/finetuning_on_cpu
-```
-</div>
-
-
-Here's a description of some of the files:<br></br>
-1\. `README.md` - Instructions on how to connect/use NativeLink and how to run the code locally as well as remotely<br></br>
-2\. `requirements.lock` - Ensures consistent Python dependencies across all environments<br></br>
-3\. `.bazelrc` - Main Bazel configuration file setting global options for hermetic builds and remote execution<br></br>
-4\. `MODULE.bazel` - Configures the project as a Bazel module, tells Bazel we'll need Python, `pip` and CPU-only PyTorch, and manages external dependencies<br></br>
-5\. `pyproject.toml` - Python package configuration specifying dependencies and development tools<br></br>
-6\. `BUILD.bazel` (root) - Root build file defining lock targets for Python dependency management<br></br>
-7\. `platforms/BUILD` - Defines Linux x86_64 execution platform running in Ubuntu 24.04 for remote builds<br></br>
-8\. `training/BUILD` - Defines the model training targets and their dependencies<br></br>
-9\. `training/main.py` - Main script that handles fine-tuning of language models on CPU using efficient training techniques<br></br>
-
-
-## Important Note About Bazel’s Remote Execution Support
-
-Bazel supports remote execution for building (compiling) and testing, but `bazel run` uses the host platform as its target platform, meaning the executable will be invoked locally rather than on remote machines. To execute binaries on remote servers, a workaround is to design tests that execute the binary, effectively leveraging `bazel test` which runs on the target platform.
-
-**DRAWBACK:**
-
-Logging and print statements that track progress (like "Starting to fine tune model" or "Exiting this function") behave differently in remote execution. Unlike local runs where these appear in real-time, remote testing collects all logs on the server and only displays them after test completion when control returns to the local machine. The expected output is still fully preserved - just delayed until the process finishes running.
-
-
-## Aside - Configuring Remote Execution For ARM (Apple Silicon)
-
-
-Most cloud infrastructure (including NativeLink) runs on x86_64 processors, while Apple Silicon Macs use ARM64. Dependencies such as PyTorch are built for specified architectures and setting up Bazel to handle platform-specific dependencies is complex.
-
-If you want to run this code and you only have a Mac, the simplest way would be to run this code via a cloud-based Linux VM (GCP/AWS). If you don't want to use a cloud server, you could create a minimal docker container for x86_64 (`FROM --platform=linux/amd64 ubuntu:24.04` with just `curl` and `Bazelisk` installed) with **Rosetta enabled** and run from your Mac's terminal using this container. However, we highly recommend against this approach; the correct approach here would be to use toolchain transitions from a local mac platform to the remote Linux runner, but that's outside of the scope of this article.
-
-
-## The NativeLink Difference
-
-To demonstrate NativeLink’s efficacy, consistency, and reliability, we ran the same fine-tuning job on the CPU of an M1 Pro MacBook Pro, the free version of Google Colab on CPU, and [NativeLink](https://github.com/TraceMachina/nativelink), which is free and open-source. We executed the fine-tuning task 5 times and this is what we observed:
-
-1\. The Mac: the quickest run took 18 minutes while the slowest/longest took 20 minutes
-
-2\. Free version of Google Colab: the quickest run took 10 minutes while the slowest/longest took 20 minutes. The execution time was widely varied. We suspect varying traffic on Google’s servers and how Colab allocates its compute resources played a part in this variability.
-
-3\. Free NativeLink: the quickest run took 4 minutes of compute time while the slowest/longest took 6 minutes. NativeLink provided the quickest execution times by far.
-
-<img src="https://github.com/user-attachments/assets/c2bf8e0e-1500-4ee7-a0f7-6b4ca2196257" width="1000" alt="Model Fine-Tuning Times"></img>
-
-
-## Conclusion: Optimizing AI Development Through Resource Efficiency
-
-As demonstrated through this tutorial, the integration of Bazel's repository management, NativeLink's CPU-optimized remote execution, and Hugging Face's transformers library creates a development ecosystem that prioritizes computational efficiency over raw processing power. This approach addresses several critical challenges facing modern AI teams:
-
-1\. **Resource Optimization**: By leveraging NativeLink's intelligent scheduling and optimization on CPU infrastructure, teams can achieve impressive fine-tuning results without the capital expenditure of specialized GPU/TPU hardware.<br></br>
-2\. **Strategic Advantage**: This CPU-focused approach provides a competitive edge through efficient resource utilization, enabling teams to allocate budget toward innovation rather than hardware acquisition.<br></br>
-3\. **Sustainable Scaling**: As models grow in size and complexity, the ability to efficiently distribute workloads across existing CPU infrastructure provides a more sustainable path to scale than continuously upgrading to the latest accelerators.<br></br>
-
-For forward-thinking AI teams, this infrastructure stack represents a shift from the "bigger is better" hardware arms race toward thoughtful resource utilization. The competitive advantage increasingly belongs to those who can extract maximum value from available compute rather than those who deploy more powerful hardware.
-
-The journey from experimental AI projects to production-grade systems demands both technical sophistication and resource awareness. By adopting this CPU-optimized approach with Bazel and NativeLink, your team can focus less on infrastructure limitations and more on the creative potential of fine-tuned models—developing applications that deliver genuine value while maintaining computational efficiency.
-
 # https://nativelink.com/resources/blog/adding-trust-roots-to-nativelink
 
 **Trust Root Support in Nativelink** (2025-05-15): Open source thrives on community contributions, and today’s story is a perfect example of why. External engineer Sam Eskandar identified a pain point in Nativelink's TLS configuration and delivered…
@@ -1484,6 +1391,99 @@ We’re grateful for contributions like this that strengthen Nativelink’s posi
 ---
 
 *Interested in contributing? Check out our [GitHub repository](https://github.com/TraceMachina/nativelink).*
+
+# https://nativelink.com/resources/blog/finetune-with-bazel-nativelink
+
+**Fine-tune a Language Model on x86 CPUs using Bazel and NativeLink** (2025-05-15): The future of AI development belongs not necessarily to those with the most powerful infrastructure but to those who can extract maximum value from available resources. This tutorial emphasizes CPU…
+
+## Introduction
+
+The future of AI development belongs not necessarily to those with the most powerful infrastructure but to those who can extract maximum value from available resources. This tutorial emphasizes CPU-based fine-tuning demonstrating that with intelligent resource management through NativeLink, impressive results can be achieved without expensive GPU or TPU infrastructure. As compute becomes increasingly costly, competitive advantage will shift toward teams that optimize resource efficiency rather than those deploying state-of-the-art hardware.
+
+This guide demonstrates how to establish an optimized AI development pipeline by integrating several key technologies:<br></br>
+1\. **Bazel Build System**: For efficient repository management. A repository managed by Bazel allows your team to work in a unified codebase while maintaining clean separation of concerns.<br></br>
+2\. **NativeLink**: A remote execution system hosted in your cloud. With NativeLink's remote execution capabilities, you can leverage your cloud resources optimally without wasteful duplication of work.<br></br>
+3\. **Hugging Face Transformers**: For integrating with the rich ecosystem of open-source models that you can run locally or deploy anywhere. The transformers library also provides a sophisticated caching mechanism for optimizing loading model weights.
+
+
+## Setting Up Your Repository With Bazel
+
+Bazel is a build system designed for repositories that allows you to organize code into logical components while maintaining dependency relationships. For AI workloads, this is particularly valuable as it lets you separate model definitions, data processing pipelines, training code, and inference services.
+
+### Prerequisites
+
+1\. A recent version of Bazel ([installation instructions](https://bazel.build/install)). <br></br>
+2\. [NativeLink 0.6.0](https://github.com/TraceMachina/nativelink/releases/tag/v0.6.0) (Apache-licensed)
+
+### Initial Setup
+
+First, let's download all the files. From the folder where you want to download the files, run the following commands:
+
+<div style="max-height: 250px; max-width: 50vw; overflow: auto;">
+
+```bash
+# Clone the entire repository
+git clone https://github.com/TraceMachina/nativelink-blogs.git
+
+# Navigate to the subdirectory
+cd nativelink-blogs/finetuning_on_cpu
+```
+</div>
+
+
+Here's a description of some of the files:<br></br>
+1\. `README.md` - Instructions on how to connect/use NativeLink and how to run the code locally as well as remotely<br></br>
+2\. `requirements.lock` - Ensures consistent Python dependencies across all environments<br></br>
+3\. `.bazelrc` - Main Bazel configuration file setting global options for hermetic builds and remote execution<br></br>
+4\. `MODULE.bazel` - Configures the project as a Bazel module, tells Bazel we'll need Python, `pip` and CPU-only PyTorch, and manages external dependencies<br></br>
+5\. `pyproject.toml` - Python package configuration specifying dependencies and development tools<br></br>
+6\. `BUILD.bazel` (root) - Root build file defining lock targets for Python dependency management<br></br>
+7\. `platforms/BUILD` - Defines Linux x86_64 execution platform running in Ubuntu 24.04 for remote builds<br></br>
+8\. `training/BUILD` - Defines the model training targets and their dependencies<br></br>
+9\. `training/main.py` - Main script that handles fine-tuning of language models on CPU using efficient training techniques<br></br>
+
+
+## Important Note About Bazel’s Remote Execution Support
+
+Bazel supports remote execution for building (compiling) and testing, but `bazel run` uses the host platform as its target platform, meaning the executable will be invoked locally rather than on remote machines. To execute binaries on remote servers, a workaround is to design tests that execute the binary, effectively leveraging `bazel test` which runs on the target platform.
+
+**DRAWBACK:**
+
+Logging and print statements that track progress (like "Starting to fine tune model" or "Exiting this function") behave differently in remote execution. Unlike local runs where these appear in real-time, remote testing collects all logs on the server and only displays them after test completion when control returns to the local machine. The expected output is still fully preserved - just delayed until the process finishes running.
+
+
+## Aside - Configuring Remote Execution For ARM (Apple Silicon)
+
+
+Most cloud infrastructure (including NativeLink) runs on x86_64 processors, while Apple Silicon Macs use ARM64. Dependencies such as PyTorch are built for specified architectures and setting up Bazel to handle platform-specific dependencies is complex.
+
+If you want to run this code and you only have a Mac, the simplest way would be to run this code via a cloud-based Linux VM (GCP/AWS). If you don't want to use a cloud server, you could create a minimal docker container for x86_64 (`FROM --platform=linux/amd64 ubuntu:24.04` with just `curl` and `Bazelisk` installed) with **Rosetta enabled** and run from your Mac's terminal using this container. However, we highly recommend against this approach; the correct approach here would be to use toolchain transitions from a local mac platform to the remote Linux runner, but that's outside of the scope of this article.
+
+
+## The NativeLink Difference
+
+To demonstrate NativeLink’s efficacy, consistency, and reliability, we ran the same fine-tuning job on the CPU of an M1 Pro MacBook Pro, the free version of Google Colab on CPU, and [NativeLink](https://github.com/TraceMachina/nativelink), which is free and open-source. We executed the fine-tuning task 5 times and this is what we observed:
+
+1\. The Mac: the quickest run took 18 minutes while the slowest/longest took 20 minutes
+
+2\. Free version of Google Colab: the quickest run took 10 minutes while the slowest/longest took 20 minutes. The execution time was widely varied. We suspect varying traffic on Google’s servers and how Colab allocates its compute resources played a part in this variability.
+
+3\. Free NativeLink: the quickest run took 4 minutes of compute time while the slowest/longest took 6 minutes. NativeLink provided the quickest execution times by far.
+
+<img src="https://github.com/user-attachments/assets/c2bf8e0e-1500-4ee7-a0f7-6b4ca2196257" width="1000" alt="Model Fine-Tuning Times"></img>
+
+
+## Conclusion: Optimizing AI Development Through Resource Efficiency
+
+As demonstrated through this tutorial, the integration of Bazel's repository management, NativeLink's CPU-optimized remote execution, and Hugging Face's transformers library creates a development ecosystem that prioritizes computational efficiency over raw processing power. This approach addresses several critical challenges facing modern AI teams:
+
+1\. **Resource Optimization**: By leveraging NativeLink's intelligent scheduling and optimization on CPU infrastructure, teams can achieve impressive fine-tuning results without the capital expenditure of specialized GPU/TPU hardware.<br></br>
+2\. **Strategic Advantage**: This CPU-focused approach provides a competitive edge through efficient resource utilization, enabling teams to allocate budget toward innovation rather than hardware acquisition.<br></br>
+3\. **Sustainable Scaling**: As models grow in size and complexity, the ability to efficiently distribute workloads across existing CPU infrastructure provides a more sustainable path to scale than continuously upgrading to the latest accelerators.<br></br>
+
+For forward-thinking AI teams, this infrastructure stack represents a shift from the "bigger is better" hardware arms race toward thoughtful resource utilization. The competitive advantage increasingly belongs to those who can extract maximum value from available compute rather than those who deploy more powerful hardware.
+
+The journey from experimental AI projects to production-grade systems demands both technical sophistication and resource awareness. By adopting this CPU-optimized approach with Bazel and NativeLink, your team can focus less on infrastructure limitations and more on the creative potential of fine-tuned models—developing applications that deliver genuine value while maintaining computational efficiency.
 
 # https://nativelink.com/resources/blog/case-study-thirdwave-automation
 
@@ -14945,7 +14945,7 @@ on the way back up, so a crash mid-write reclaims itself.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | Unit restarts in a loop, journal says `unknown field` | Config is parsed with `deny_unknown_fields`; one unrecognised key is fatal | Check the key in the [configuration reference](/reference/nativelink-config) |
-| Process exits during startup, no error about ports | `NL_OTEL_ENDPOINT` without a scheme or explicit port panics before binding | Use `http://host:4317`; see [CLI and environment](/reference/cli-and-env) |
+| Process exits during startup, no error about ports | `NL_OTEL_ENDPOINT` without a scheme or explicit port stops the process before binding | Use `http://host:4317`; see [CLI and environment](/reference/cli-and-env) |
 | Everything slows down under load, nothing errors | File-descriptor semaphore exhaustion blocks rather than failing | Raise `LimitNOFILE` **and** `max_open_files` together |
 | Two workers on one host behave erratically | They share a `work_directory`, which is purged at startup | Give each worker its own |
 | Disk full, then every request fails and keeps retrying | ENOSPC surfaces as a generic error code that clients and upstream stores retry, and eviction is not triggered by write failures | [Runbooks](/operate/runbooks#the-disk-fills-up) |
@@ -15033,12 +15033,12 @@ export RUST_LOG=info
 <Callout type="warn" title="NL_OTEL_ENDPOINT needs a scheme and an explicit port">
 
   The value is parsed as a URL and the host and port are pulled out
-  individually, and each step `unwrap`s. A value with no scheme, or with no
-  explicit port, yields `None` for the port and **panics the process during
-  startup**, before it binds a socket.
+  individually. A value with no scheme, or with no explicit port, **stops the
+  process during startup** with an error, before it binds a socket, rather
+  than falling back to a default.
 
   `http://otel-collector:4317` is correct. `otel-collector:4317` and
-  `http://otel-collector` both crash the binary.
+  `http://otel-collector` both stop the binary.
 
 </Callout>
 
@@ -15051,12 +15051,28 @@ a cluster, because it re-resolves the collector's DNS as pods move. Either way
 the transport is OTLP over gRPC: the binary is built with only the gRPC
 exporter, so `OTEL_EXPORTER_OTLP_PROTOCOL` cannot switch it to HTTP.
 
+An `https://` endpoint, in either variable, gets TLS. Without further
+configuration the collector's certificate is checked against the host's
+system trust store, which is what you want for a collector behind a
+public certificate. For a collector with a private CA, set
+`OTEL_EXPORTER_OTLP_CERTIFICATE` to the PEM file of that CA and only it is
+trusted. For a collector that asks the client for a certificate (mTLS), set
+`OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE` and `OTEL_EXPORTER_OTLP_CLIENT_KEY`
+together. These are the OpenTelemetry specification's own variable names,
+so a worker outside the cluster (a macOS worker, say) reaches the cluster's
+collector with the same configuration any other OTLP client would use. The
+per-signal forms (`OTEL_EXPORTER_OTLP_TRACES_CERTIFICATE` and so on) win over
+the general one, as the specification says.
+
 The rest of the surface is small enough to state in full:
 
 | Variable | Default | What it does here |
 | --- | --- | --- |
-| `NL_OTEL_ENDPOINT` | unset | One shared gRPC channel for logs, traces and metrics. Panics on a malformed value. |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Used only when `NL_OTEL_ENDPOINT` is unset. |
+| `NL_OTEL_ENDPOINT` | unset | One shared gRPC channel for logs, traces and metrics. Stops the process on a malformed value. An `https://` value gets TLS; a per-signal certificate variable gives that signal a channel of its own, built with its material. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Used only when `NL_OTEL_ENDPOINT` is unset. An `https://` value gets TLS. |
+| `OTEL_EXPORTER_OTLP_CERTIFICATE` | unset | Path to the PEM CA that signs the collector's certificate. Set, it is the only CA trusted; unset, the system trust store is. |
+| `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE` | unset | Path to the PEM certificate the exporter presents to the collector for mTLS. Requires `OTEL_EXPORTER_OTLP_CLIENT_KEY`; one without the other stops the process. |
+| `OTEL_EXPORTER_OTLP_CLIENT_KEY` | unset | Path to the PEM private key for that certificate. |
 | `OTEL_EXPORTER_OTLP_COMPRESSION` | unset | `gzip` or `zstd` on the gRPC exporters; the shipped Kubernetes manifests set `zstd`. |
 | `OTEL_METRIC_EXPORT_INTERVAL` | `60000` (ms) | How often metrics flush. NativeLink sets no interval, so the SDK default of one minute applies. This is the first hop in the [reaction-time budget](/operate/autoscaling-reference#the-reaction-time-budget); lower it to 10000 before you scale on anything. |
 | `RUST_LOG` | `info` | Applies to the stdout layer **and** to all three OTLP layers. `hyper`, `tonic`, `h2`, `reqwest` and `tower` are forced off afterwards and cannot be re-enabled. |
@@ -15426,7 +15442,8 @@ not your pipeline.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Process panics at startup with a URL error | `NL_OTEL_ENDPOINT` has no scheme or no explicit port | Use `http://host:4317` |
+| Process stops at startup with a URL error | `NL_OTEL_ENDPOINT` has no scheme or no explicit port | Use `http://host:4317` |
+| Process stops at startup naming an `OTEL_EXPORTER_OTLP_*` variable | A certificate variable names a file the process cannot read, or a client certificate is set without its key | Fix the path, or set `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE` and `OTEL_EXPORTER_OTLP_CLIENT_KEY` together |
 | No metrics anywhere, process healthy | Nothing is pushing; check `otelcol_receiver_accepted_metric_points` on `:8888` | Verify the endpoint and that it is set on the process you are looking for |
 | Metrics appear a minute late | `OTEL_METRIC_EXPORT_INTERVAL` defaults to 60 s | Set `10000` |
 | `nativelink_execution_*` present, `nativelink_cache_*` missing | No store is wrapped | [Turn on cache metrics](#turn-on-cache-metrics) |
@@ -15806,10 +15823,13 @@ run on your behalf.
 What the worker actually does before executing an action:
 
 ```text
-unshare(CLONE_NEWPID | CLONE_NEWUSER | CLONE_NEWIPC | CLONE_NEWUTS)
+unshare(CLONE_NEWPID | CLONE_NEWUSER | CLONE_NEWIPC | CLONE_NEWUTS | CLONE_NEWNS)
 write /proc/self/setgroups  "deny"
 write /proc/self/uid_map    "<uid> <uid> 1"
 write /proc/self/gid_map    "<gid> <gid> 1"
+mount --make-rprivate /
+fork                         # the child is PID 1 of the new PID namespace
+mount -t proc proc /proc     # in that child, so /proc lists the action's processes
 ```
 
 <SourceLink file="nativelink-worker/src/namespace_utils.rs" symbol="unshare" />
@@ -15818,10 +15838,15 @@ Read the uid map carefully. It is an **identity** map: uid *N* inside the
 namespace is uid *N* outside it. The action runs as the worker's own user, with
 the worker's own privileges on the host filesystem. This is not a
 uid-remapping sandbox; it is a process-reaping and hermeticity mechanism. PID
-namespacing means orphaned children die with the action instead of leaking;
-IPC and UTS namespacing means actions cannot see each other's semaphores or
-hostname (the hostname is set to `nativelink`). With `use_mount_namespace`
-the flag list also gains `CLONE_NEWNS`, the worker's own root action
+namespacing means orphaned children die with the action instead of leaking,
+and the fresh `/proc` means what an action finds there is its own processes,
+each under the PID the action knows it by (where the host refuses that mount, as an
+unprivileged container that masks paths under `/proc` does, the worker warns
+at startup and the action sees the host's `/proc`); IPC and UTS namespacing
+means actions cannot see each other's semaphores or hostname (the hostname is
+set to `nativelink`). The mount namespace is private to the action, so the
+`/proc` mount never reaches the host; without `use_mount_namespace` nothing
+else in it changes. With `use_mount_namespace` the worker's own root action
 directory is masked so one action cannot see another's tree, and `/tmp` is
 replaced with the action's own temporary directory, on the worker's disk and
 removed with the action, so actions cannot collide on, or leak state
@@ -21038,20 +21063,23 @@ They are the only variables that change the binary's own behaviour.
 | Variable | Default | Effect |
 | --- | --- | --- |
 | `NL_LOG` | `pretty` | Format of the stdout log layer. `compact` and `json` are recognised; **any other value silently falls back to `pretty`**, including a typo like `Json`. |
-| `RUST_LOG` | `info` | Log filter, parsed by `tracing_subscriber`'s `EnvFilter` in lossy mode; an unparseable directive is dropped rather than fatal. Applies to the stdout layer *and* to the OTLP log, trace and metric layers. `hyper`, `tonic`, `h2`, `reqwest` and `tower` are forced off afterwards and cannot be re-enabled from here. |
-| `NL_OTEL_ENDPOINT` | not set | When set, all three OTLP exporters share one client-side load-balanced gRPC channel pointed at this endpoint. When unset, each exporter is built with the SDK's own tonic defaults instead. |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Standard OpenTelemetry SDK variable. Applies only when `NL_OTEL_ENDPOINT` is unset; an explicit channel wins over the SDK's endpoint resolution. The signal-specific `OTEL_EXPORTER_OTLP_{LOGS,TRACES,METRICS}_ENDPOINT` variables behave the same way. |
+| `RUST_LOG` | `info` | Log filter, parsed by `tracing_subscriber`'s `EnvFilter` in lossy mode; a directive that cannot be parsed is dropped rather than fatal. Applies to the stdout layer *and* to the OTLP log, trace and metric layers. `hyper`, `tonic`, `h2`, `reqwest` and `tower` are forced off afterwards and cannot be re-enabled from here. |
+| `NL_OTEL_ENDPOINT` | not set | When set, all three OTLP exporters share one client-side load-balanced gRPC channel pointed at this endpoint. When unset, each exporter is built with the SDK's own tonic defaults instead. An `https://` endpoint gets TLS, with the certificate variables below or the system trust store. A per-signal certificate variable gives that signal a channel of its own, built with its material, instead of the shared one. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Standard OpenTelemetry SDK variable. Applies only when `NL_OTEL_ENDPOINT` is unset; an explicit channel wins over the SDK's endpoint resolution. The signal-specific `OTEL_EXPORTER_OTLP_{LOGS,TRACES,METRICS}_ENDPOINT` variables behave the same way. An `https://` endpoint gets TLS, with the certificate variables below or the system trust store. |
+| `OTEL_EXPORTER_OTLP_CERTIFICATE` | not set | Standard OpenTelemetry variable, read by NativeLink itself because the Rust SDK does not: the path to a PEM file holding the CA that signs the collector's certificate. Set, it is the only CA trusted; unset, the host's system trust store is. The signal-specific `OTEL_EXPORTER_OTLP_{LOGS,TRACES,METRICS}_CERTIFICATE` forms win over it. An empty value counts as unset; a path that cannot be read stops the process at startup. |
+| `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE` | not set | The path to the PEM certificate the exporter presents when the collector asks for one (mTLS). Has to be set together with `OTEL_EXPORTER_OTLP_CLIENT_KEY`; one without the other stops the process at startup. Signal-specific forms as above. |
+| `OTEL_EXPORTER_OTLP_CLIENT_KEY` | not set | The path to the PEM private key for `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE`. Signal-specific forms as above. |
 | `OTEL_METRIC_EXPORT_INTERVAL` | `60000` (ms) | How often the periodic metric reader flushes to the collector. NativeLink sets no interval of its own, so the SDK default of one minute applies unless you override it here. This is the first hop in the [reaction-time budget](/operate/autoscaling-reference). |
 
 <Callout type="warn" title="NL_OTEL_ENDPOINT requires a scheme and an explicit port">
 
   The endpoint is parsed as a URL and then the host and port are pulled out
-  individually, and each step `unwrap`s. A value with no scheme, or with no
-  explicit port, yields `None` for the port and **panics the process during
-  startup** rather than falling back to a default.
+  individually. A value with no scheme, or with no explicit port, **stops the
+  process during startup** with an error rather than falling back to a
+  default.
 
   `http://otel-collector:4317` is correct. `otel-collector:4317` and
-  `http://otel-collector` both crash the binary before it binds a socket.
+  `http://otel-collector` both stop the binary before it binds a socket.
 
 </Callout>
 
@@ -21957,7 +21985,7 @@ Bazel.
 ## Prerequisites [#prerequisites]
 
 - Bazelisk, which reads `.bazelversion` and fetches the right Bazel for
-  you. CI runs 9.1.1 and also checks 8.7.0.
+  you. CI runs 9.3.1 and also checks 8.8.2.
 - A C++ toolchain (clang or gcc) for native dependencies.
 - On macOS: XCode command-line tools.
 - On Linux, inside the Nix shell, the LRE toolchains link with `mold`;
