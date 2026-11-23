@@ -1,3 +1,5 @@
+**English** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
+
 <div id="logo" align="center">
   <a href="https://www.nativelink.com">
     <picture>
